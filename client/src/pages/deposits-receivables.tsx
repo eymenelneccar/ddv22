@@ -100,10 +100,14 @@ export default function DepositsReceivables() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/receivables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/income"] });
       queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       setIsAddDepositOpen(false);
       depositForm.reset();
       setSelectedFile(null);
+      setIsFullPayment(true);
       toast({
         title: "تم بنجاح",
         description: "تم تسجيل الرعبون بنجاح",
@@ -152,6 +156,8 @@ export default function DepositsReceivables() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/income"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       setIsEditDepositOpen(false);
       setEditingDeposit(null);
       depositForm.reset();
@@ -267,6 +273,7 @@ export default function DepositsReceivables() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/receivables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/income"] });
       queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       setIsPaymentDialogOpen(false);
