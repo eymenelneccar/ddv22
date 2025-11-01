@@ -465,6 +465,137 @@ export class DatabaseStorage implements IStorage {
     // For this demo, we'll just acknowledge the update
     return Promise.resolve();
   }
+
+  // Deposit operations (الرعبون)
+  async getDeposits(customerId?: string): Promise<Deposit[]> {
+    if (customerId) {
+      return await db
+        .select()
+        .from(deposits)
+        .where(eq(deposits.customerId, customerId))
+        .orderBy(desc(deposits.createdAt));
+    }
+    return await db.select().from(deposits).orderBy(desc(deposits.createdAt));
+  }
+
+  async getDeposit(id: string): Promise<Deposit | undefined> {
+    const [deposit] = await db.select().from(deposits).where(eq(deposits.id, id));
+    return deposit;
+  }
+
+  async createDeposit(depositData: InsertDeposit): Promise<Deposit> {
+    const [deposit] = await db
+      .insert(deposits)
+      .values(depositData)
+      .returning();
+
+    // Log activity
+    await this.createActivity({
+      type: 'deposit_added',
+      description: `تم تسجيل رعبون بقيمة ${depositData.amount} د.ع`,
+      relatedId: deposit.id,
+    });
+
+    return deposit;
+  }
+
+  async updateDeposit(id: string, data: Partial<InsertDeposit>): Promise<Deposit | null> {
+    const [deposit] = await db
+      .update(deposits)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(deposits.id, id))
+      .returning();
+    
+    if (deposit) {
+      await this.createActivity({
+        type: 'deposit_updated',
+        description: `تم تعديل رعبون`,
+        relatedId: deposit.id,
+      });
+    }
+    
+    return deposit || null;
+  }
+
+  async deleteDeposit(id: string): Promise<void> {
+    await db.delete(deposits).where(eq(deposits.id, id));
+    
+    await this.createActivity({
+      type: 'deposit_deleted',
+      description: `تم حذف رعبون`,
+      relatedId: id,
+    });
+  }
+
+  // Receivable operations (المستحقات)
+  async getReceivables(customerId?: string): Promise<Receivable[]> {
+    if (customerId) {
+      return await db
+        .select()
+        .from(receivables)
+        .where(eq(receivables.customerId, customerId))
+        .orderBy(desc(receivables.createdAt));
+    }
+    return await db.select().from(receivables).orderBy(desc(receivables.createdAt));
+  }
+
+  async getReceivable(id: string): Promise<Receivable | undefined> {
+    const [receivable] = await db.select().from(receivables).where(eq(receivables.id, id));
+    return receivable;
+  }
+
+  async createReceivable(receivableData: InsertReceivable): Promise<Receivable> {
+    const [receivable] = await db
+      .insert(receivables)
+      .values(receivableData)
+      .returning();
+
+    // Log activity
+    await this.createActivity({
+      type: 'receivable_added',
+      description: `تم تسجيل مستحق بقيمة ${receivableData.amount} د.ع`,
+      relatedId: receivable.id,
+    });
+
+    return receivable;
+  }
+
+  async updateReceivable(id: string, data: Partial<InsertReceivable>): Promise<Receivable | null> {
+    const [receivable] = await db
+      .update(receivables)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(receivables.id, id))
+      .returning();
+    
+    if (receivable) {
+      await this.createActivity({
+        type: 'receivable_updated',
+        description: `تم تعديل مستحق`,
+        relatedId: receivable.id,
+      });
+    }
+    
+    return receivable || null;
+  }
+
+  async deleteReceivable(id: string): Promise<void> {
+    await db.delete(receivables).where(eq(receivables.id, id));
+    
+    await this.createActivity({
+      type: 'receivable_deleted',
+      description: `تم حذف مستحق`,
+      relatedId: id,
+    });
+  }
+
+  async getOverdueReceivables(): Promise<Receivable[]> {
+    const today = new Date().toISOString().split('T')[0];
+    return await db
+      .select()
+      .from(receivables)
+      .where(sql`${receivables.dueDate} < ${today} AND ${receivables.status} = 'pending'`)
+      .orderBy(receivables.dueDate);
+  }
 }
 
 // In-Memory storage for when database is unavailable
@@ -741,137 +872,6 @@ class MemoryStorage implements IStorage {
     
     this.activities.push(activity);
     return activity;
-  }
-
-  // Deposit operations (الرعبون)
-  async getDeposits(customerId?: string): Promise<Deposit[]> {
-    if (customerId) {
-      return await db
-        .select()
-        .from(deposits)
-        .where(eq(deposits.customerId, customerId))
-        .orderBy(desc(deposits.createdAt));
-    }
-    return await db.select().from(deposits).orderBy(desc(deposits.createdAt));
-  }
-
-  async getDeposit(id: string): Promise<Deposit | undefined> {
-    const [deposit] = await db.select().from(deposits).where(eq(deposits.id, id));
-    return deposit;
-  }
-
-  async createDeposit(depositData: InsertDeposit): Promise<Deposit> {
-    const [deposit] = await db
-      .insert(deposits)
-      .values(depositData)
-      .returning();
-
-    // Log activity
-    await this.createActivity({
-      type: 'deposit_added',
-      description: `تم تسجيل رعبون بقيمة ${depositData.amount} د.ع`,
-      relatedId: deposit.id,
-    });
-
-    return deposit;
-  }
-
-  async updateDeposit(id: string, data: Partial<InsertDeposit>): Promise<Deposit | null> {
-    const [deposit] = await db
-      .update(deposits)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(deposits.id, id))
-      .returning();
-    
-    if (deposit) {
-      await this.createActivity({
-        type: 'deposit_updated',
-        description: `تم تعديل رعبون`,
-        relatedId: deposit.id,
-      });
-    }
-    
-    return deposit || null;
-  }
-
-  async deleteDeposit(id: string): Promise<void> {
-    await db.delete(deposits).where(eq(deposits.id, id));
-    
-    await this.createActivity({
-      type: 'deposit_deleted',
-      description: `تم حذف رعبون`,
-      relatedId: id,
-    });
-  }
-
-  // Receivable operations (المستحقات)
-  async getReceivables(customerId?: string): Promise<Receivable[]> {
-    if (customerId) {
-      return await db
-        .select()
-        .from(receivables)
-        .where(eq(receivables.customerId, customerId))
-        .orderBy(desc(receivables.createdAt));
-    }
-    return await db.select().from(receivables).orderBy(desc(receivables.createdAt));
-  }
-
-  async getReceivable(id: string): Promise<Receivable | undefined> {
-    const [receivable] = await db.select().from(receivables).where(eq(receivables.id, id));
-    return receivable;
-  }
-
-  async createReceivable(receivableData: InsertReceivable): Promise<Receivable> {
-    const [receivable] = await db
-      .insert(receivables)
-      .values(receivableData)
-      .returning();
-
-    // Log activity
-    await this.createActivity({
-      type: 'receivable_added',
-      description: `تم تسجيل مستحق بقيمة ${receivableData.amount} د.ع`,
-      relatedId: receivable.id,
-    });
-
-    return receivable;
-  }
-
-  async updateReceivable(id: string, data: Partial<InsertReceivable>): Promise<Receivable | null> {
-    const [receivable] = await db
-      .update(receivables)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(receivables.id, id))
-      .returning();
-    
-    if (receivable) {
-      await this.createActivity({
-        type: 'receivable_updated',
-        description: `تم تعديل مستحق`,
-        relatedId: receivable.id,
-      });
-    }
-    
-    return receivable || null;
-  }
-
-  async deleteReceivable(id: string): Promise<void> {
-    await db.delete(receivables).where(eq(receivables.id, id));
-    
-    await this.createActivity({
-      type: 'receivable_deleted',
-      description: `تم حذف مستحق`,
-      relatedId: id,
-    });
-  }
-
-  async getOverdueReceivables(): Promise<Receivable[]> {
-    const today = new Date().toISOString().split('T')[0];
-    return await db
-      .select()
-      .from(receivables)
-      .where(sql`${receivables.dueDate} < ${today} AND ${receivables.status} = 'pending'`)
-      .orderBy(receivables.dueDate);
   }
 
   async getDashboardStats() {
