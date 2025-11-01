@@ -91,9 +91,11 @@ export const deposits = pgTable("deposits", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   customerId: varchar("customer_id").references(() => customers.id).notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }),
   description: text("description"),
   receiptUrl: text("receipt_url"),
   status: varchar("status").default('active'), // active, refunded, applied
+  isFullPayment: boolean("is_full_payment").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
