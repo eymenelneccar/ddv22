@@ -6,6 +6,14 @@ IQR Control is a comprehensive Arabic-language business management system design
 
 ## Recent Changes
 
+### November 1, 2025 - Deposits and Receivables Module
+- **New Feature**: Added comprehensive "الرعبون والمستحقات" (Deposits and Receivables) module
+- **Database**: Created two new tables (deposits and receivables) linked to customers
+- **API Endpoints**: Implemented full CRUD operations for deposits and receivables management
+- **UI**: Built tabbed interface page with forms for creating and managing deposits/receivables
+- **Navigation**: Replaced user account management section with deposits/receivables in dashboard
+- **Integration**: Connected deposits and receivables to customer accounts with full tracking
+
 ### November 1, 2025 - Replit Environment Setup
 - **Database Configuration**: Updated to use Replit's PostgreSQL database via `DATABASE_URL` environment variable
 - **Session Management**: Now uses `SESSION_SECRET` from Replit environment variables
@@ -56,6 +64,8 @@ Preferred communication style: Simple, everyday language.
   - Income entries with categorization (subscriptions, prints, other)
   - Expense entries with reason tracking
   - Employees table with position and salary information
+  - Deposits table for tracking customer deposits with amounts and descriptions
+  - Receivables table for managing customer receivables with due dates and payment status
   - Activities table for audit logging
   - Sessions table for authentication persistence
 
