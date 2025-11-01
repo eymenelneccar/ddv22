@@ -6,13 +6,19 @@ IQR Control is a comprehensive Arabic-language business management system design
 
 ## Recent Changes
 
-### November 1, 2025 - Deposits and Receivables Module
-- **New Feature**: Added comprehensive "الرعبون والمستحقات" (Deposits and Receivables) module
-- **Database**: Created two new tables (deposits and receivables) linked to customers
-- **API Endpoints**: Implemented full CRUD operations for deposits and receivables management
-- **UI**: Built tabbed interface page with forms for creating and managing deposits/receivables
-- **Navigation**: Replaced user account management section with deposits/receivables in dashboard
-- **Integration**: Connected deposits and receivables to customer accounts with full tracking
+### November 1, 2025 - Enhanced Deposits and Receivables with Partial Payment Support
+- **Full/Partial Payment**: Added option to mark deposits as full or partial payment
+  - When partial payment is selected, user enters both total amount and amount paid
+  - System automatically creates a receivable for the difference (totalAmount - amount)
+  - Deposit amount is added to monthly income, receivable is tracked separately
+- **Automatic Income Integration**: All deposit payments and receivable payments automatically create income entries
+- **Payment Processing**: Added payment endpoint for receivables with amount validation
+  - Payment button appears only for pending/overdue receivables
+  - Payment amount is added to monthly income and updates receivable status
+  - Receivable marked as 'paid' when fully settled
+- **Query Invalidation**: All mutations properly invalidate related queries (/api/income, /api/dashboard/stats, /api/deposits, /api/receivables, /api/activities)
+- **Database Schema**: Extended deposits table with totalAmount and isFullPayment fields
+- **UI Enhancements**: Payment dialog with file upload support for receipts
 
 ### November 1, 2025 - Replit Environment Setup
 - **Database Configuration**: Updated to use Replit's PostgreSQL database via `DATABASE_URL` environment variable

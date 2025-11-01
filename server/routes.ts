@@ -401,6 +401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertDepositSchema.parse({
         ...req.body,
+        isFullPayment: req.body.isFullPayment === 'true' || req.body.isFullPayment === true,
         receiptUrl: req.file ? `/uploads/${req.file.filename}` : null
       });
       
