@@ -374,40 +374,40 @@ export default function DepositsReceivables() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" dir="rtl">
       <Header />
-      <main className="container mx-auto p-6">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <main className="container mx-auto px-3 sm:px-6 py-4 sm:py-6">
+        <div className="mb-4 sm:mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/">
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <ArrowRight className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 sm:w-10 sm:h-10">
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
               الرعبون والمستحقات
             </h1>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
           <TabsList className="grid w-full grid-cols-2 bg-gray-800/50">
-            <TabsTrigger value="deposits" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500">
-              <Wallet className="w-4 h-4 mr-2" />
+            <TabsTrigger value="deposits" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 text-xs sm:text-base py-2 sm:py-3">
+              <Wallet className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               الرعبون
             </TabsTrigger>
-            <TabsTrigger value="receivables" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500">
-              <Receipt className="w-4 h-4 mr-2" />
+            <TabsTrigger value="receivables" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 text-xs sm:text-base py-2 sm:py-3">
+              <Receipt className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               المستحقات
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="deposits">
-            <GlassCard className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold">قائمة الرعبون</h2>
+            <GlassCard className="p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+                <h2 className="text-lg sm:text-xl font-semibold">قائمة الرعبون</h2>
                 <Dialog open={isAddDepositOpen} onOpenChange={setIsAddDepositOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-gradient-to-r from-purple-500 to-pink-500">
-                      <Plus className="w-4 h-4 mr-2" />
+                    <Button className="bg-gradient-to-r from-purple-500 to-pink-500 w-full sm:w-auto text-sm sm:text-base">
+                      <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                       إضافة رعبون
                     </Button>
                   </DialogTrigger>
