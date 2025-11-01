@@ -210,6 +210,23 @@ export default function DepositsReceivables() {
         description: "تم تسجيل المستحق بنجاح",
       });
     },
+    onError: (error: Error) => {
+      let errorMessage = "فشل في تسجيل المستحق";
+      try {
+        const errorText = error.message.split(': ')[1];
+        if (errorText) {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorMessage;
+        }
+      } catch (e) {
+        console.error("Error parsing error message:", error.message);
+      }
+      toast({
+        title: "خطأ",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
   });
 
   const editReceivableMutation = useMutation({
@@ -232,6 +249,23 @@ export default function DepositsReceivables() {
       toast({
         title: "تم بنجاح",
         description: "تم تعديل المستحق بنجاح",
+      });
+    },
+    onError: (error: Error) => {
+      let errorMessage = "فشل في تعديل المستحق";
+      try {
+        const errorText = error.message.split(': ')[1];
+        if (errorText) {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorMessage;
+        }
+      } catch (e) {
+        console.error("Error parsing error message:", error.message);
+      }
+      toast({
+        title: "خطأ",
+        description: errorMessage,
+        variant: "destructive",
       });
     },
   });
