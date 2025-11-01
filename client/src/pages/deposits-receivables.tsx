@@ -343,7 +343,7 @@ export default function DepositsReceivables() {
       <main className="container mx-auto p-6">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/dashboard">
+            <Link href="/">
               <Button variant="ghost" size="icon" className="rounded-full">
                 <ArrowRight className="w-5 h-5" />
               </Button>
