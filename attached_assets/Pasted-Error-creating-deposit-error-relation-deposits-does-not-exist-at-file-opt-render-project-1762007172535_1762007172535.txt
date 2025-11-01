@@ -1,0 +1,131 @@
+Error creating deposit: error: relation "deposits" does not exist
+    at file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async NeonPreparedQuery.execute (file:///opt/render/project/src/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+    at async DatabaseStorage.createDeposit (file:///opt/render/project/src/dist/index.js:724:27)
+    at async file:///opt/render/project/src/dist/index.js:1425:23 {
+  length: 107,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '13',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+2:07:54 PM [express] POST /api/deposits 400 in 575ms :: {"message":"بيانات الرعبون غير صحيحة"}
+Session debug - Path: /api/deposits, SessionID: undefined, UserID: undefined
+Error creating deposit: error: relation "deposits" does not exist
+    at file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async NeonPreparedQuery.execute (file:///opt/render/project/src/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+    at async DatabaseStorage.createDeposit (file:///opt/render/project/src/dist/index.js:724:27)
+    at async file:///opt/render/project/src/dist/index.js:1425:23 {
+  length: 107,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '13',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+2:07:57 PM [express] POST /api/deposits 400 in 558ms :: {"message":"بيانات الرعبون غير صحيحة"}
+==> Detected service running on port 10000
+==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+Session debug - Path: /api/receivables, SessionID: undefined, UserID: undefined
+Session debug - Path: /api/deposits, SessionID: undefined, UserID: undefined
+Error fetching receivables: error: column "amount" does not exist
+    at file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async NeonPreparedQuery.execute (file:///opt/render/project/src/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+    at async DatabaseStorage.getReceivables (file:///opt/render/project/src/dist/index.js:756:16)
+    at async file:///opt/render/project/src/dist/index.js:1493:28 {
+  length: 106,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '29',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+2:09:01 PM [express] GET /api/receivables 500 in 1071ms :: {"message":"فشل في جلب المستحقات"}
+Error fetching deposits: error: relation "deposits" does not exist
+    at file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async NeonPreparedQuery.execute (file:///opt/render/project/src/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+    at async DatabaseStorage.getDeposits (file:///opt/render/project/src/dist/index.js:717:16)
+    at async file:///opt/render/project/src/dist/index.js:1411:25 {
+  length: 108,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '146',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+2:09:02 PM [express] GET /api/deposits 500 in 1074ms :: {"message":"فشل في جلب الرعبون"}
+Session debug - Path: /api/deposits, SessionID: undefined, UserID: undefined
+Error creating deposit: error: relation "deposits" does not exist
+    at file:///opt/render/project/src/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async NeonPreparedQuery.execute (file:///opt/render/project/src/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+    at async DatabaseStorage.createDeposit (file:///opt/render/project/src/dist/index.js:724:27)
+    at async file:///opt/render/project/src/dist/index.js:1425:23 {
+  length: 107,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '13',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+2:09:11 PM [express] POST /api/deposits 400 in 588ms :: {"message":"بيانات الرعبون غير صحيحة"}
