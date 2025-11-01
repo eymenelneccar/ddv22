@@ -240,25 +240,25 @@ export default function Customers() {
     <div className="min-h-screen gradient-bg">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4 space-x-reverse">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 sm:space-x-reverse w-full sm:w-auto">
             <Link href="/">
-              <Button variant="ghost" size="sm" data-testid="button-back">
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Button variant="ghost" size="sm" data-testid="button-back" className="text-sm">
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
                 العودة للرئيسية
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold" data-testid="text-page-title">إدارة العملاء</h1>
-              <p className="text-gray-300" data-testid="text-page-subtitle">إضافة وإدارة عملاء النظام</p>
+              <h1 className="text-2xl sm:text-3xl font-bold" data-testid="text-page-title">إدارة العملاء</h1>
+              <p className="text-sm sm:text-base text-gray-300" data-testid="text-page-subtitle">إضافة وإدارة عملاء النظام</p>
             </div>
           </div>
           
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gradient-purple hover:scale-105 transition-transform" data-testid="button-add-customer">
-                <Plus className="w-4 h-4 ml-2" />
+              <Button className="gradient-purple hover:scale-105 transition-transform w-full sm:w-auto text-sm sm:text-base" data-testid="button-add-customer">
+                <Plus className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
                 إضافة عميل
               </Button>
             </DialogTrigger>
@@ -466,8 +466,8 @@ export default function Customers() {
         </Dialog>
 
         {/* Customer List */}
-        <GlassCard className="p-6">
-          <h2 className="text-xl font-semibold mb-6" data-testid="text-customer-list-title">قائمة العملاء</h2>
+        <GlassCard className="p-3 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6" data-testid="text-customer-list-title">قائمة العملاء</h2>
           
           {isLoading ? (
             <div className="text-center py-12">
@@ -479,29 +479,29 @@ export default function Customers() {
               {customers.map((customer: any, index: number) => (
                 <GlassCard 
                   key={customer.id} 
-                  className="p-6"
+                  className="p-3 sm:p-6"
                   data-testid={`card-customer-${index}`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 space-x-reverse">
-                      <div className={`w-12 h-12 gradient-purple rounded-full flex items-center justify-center`}>
-                        <Calendar className="w-6 h-6" />
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+                    <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 space-x-reverse w-full sm:w-auto">
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 gradient-purple rounded-full flex items-center justify-center flex-shrink-0`}>
+                        <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold flex items-center space-x-2 space-x-reverse">
-                          <span data-testid={`text-customer-name-${index}`}>{customer.name}</span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base sm:text-lg font-semibold flex items-center space-x-2 space-x-reverse flex-wrap">
+                          <span data-testid={`text-customer-name-${index}`} className="truncate">{customer.name}</span>
                           {isExpired(customer.expiryDate) && (
-                            <AlertTriangle className="w-4 h-4 text-red-400" />
+                            <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 text-red-400 flex-shrink-0" />
                           )}
                           {isExpiringSoon(customer.expiryDate) && (
-                            <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                            <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 flex-shrink-0" />
                           )}
                         </h3>
-                        <p className="text-sm text-gray-400" data-testid={`text-customer-join-date-${index}`}>
+                        <p className="text-xs sm:text-sm text-gray-400" data-testid={`text-customer-join-date-${index}`}>
                           تاريخ الانضمام: {new Date(customer.joinDate).toLocaleDateString('ar-IQ')}
                         </p>
                         <p 
-                          className={`text-sm ${isExpired(customer.expiryDate) ? 'text-red-400' : isExpiringSoon(customer.expiryDate) ? 'text-yellow-400' : 'text-gray-300'}`}
+                          className={`text-xs sm:text-sm ${isExpired(customer.expiryDate) ? 'text-red-400' : isExpiringSoon(customer.expiryDate) ? 'text-yellow-400' : 'text-gray-300'}`}
                           data-testid={`text-customer-expiry-date-${index}`}
                         >
                           ينتهي في: {new Date(customer.expiryDate).toLocaleDateString('ar-IQ')}
@@ -512,14 +512,14 @@ export default function Customers() {
                       </div>
                     </div>
                     
-                    <div className="flex space-x-3 space-x-reverse">
+                    <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:space-x-3 sm:space-x-reverse w-full sm:w-auto">
                       <Button
                         onClick={() => handleEditCustomer(customer)}
                         variant="outline"
-                        className="border-blue-400 text-blue-400 hover:bg-blue-400/10"
+                        className="border-blue-400 text-blue-400 hover:bg-blue-400/10 flex-1 sm:flex-none text-xs sm:text-sm"
                         data-testid={`button-edit-${index}`}
                       >
-                        <Edit className="w-4 h-4 ml-1" />
+                        <Edit className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
                         تعديل
                       </Button>
 
@@ -527,10 +527,10 @@ export default function Customers() {
                         <AlertDialogTrigger asChild>
                           <Button
                             variant="outline"
-                            className="border-red-400 text-red-400 hover:bg-red-400/10"
+                            className="border-red-400 text-red-400 hover:bg-red-400/10 flex-1 sm:flex-none text-xs sm:text-sm"
                             data-testid={`button-delete-${index}`}
                           >
-                            <Trash2 className="w-4 h-4 ml-1" />
+                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
                             حذف
                           </Button>
                         </AlertDialogTrigger>
@@ -557,10 +557,10 @@ export default function Customers() {
                         <AlertDialogTrigger asChild>
                           <Button
                             disabled={renewSubscriptionMutation.isPending}
-                            className="gradient-green hover:scale-105 transition-transform"
+                            className="gradient-green hover:scale-105 transition-transform flex-1 sm:flex-none text-xs sm:text-sm"
                             data-testid={`button-renew-${index}`}
                           >
-                            <RotateCcw className="w-4 h-4 ml-1" />
+                            <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
                             تجديد
                           </Button>
                         </AlertDialogTrigger>
@@ -587,7 +587,7 @@ export default function Customers() {
                         <Button
                           asChild
                           variant="outline"
-                          className="border-blue-400 text-blue-400 hover:bg-blue-400/10"
+                          className="border-blue-400 text-blue-400 hover:bg-blue-400/10 flex-1 sm:flex-none text-xs sm:text-sm"
                           data-testid={`button-view-menu-${index}`}
                         >
                           <a 
