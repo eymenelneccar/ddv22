@@ -14,9 +14,31 @@ import {
   insertDepositSchema,
   insertReceivableSchema
 } from "@shared/schema";
+import { ZodError } from "zod";
 
+// Helper function to format Zod validation errors in Arabic
+function formatZodError(error: ZodError): string {
+  const fieldNames: Record<string, string> = {
+    customerId: 'الزبون',
+    amount: 'المبلغ',
+    description: 'الوصف',
+    status: 'الحالة',
+    isFullPayment: 'المبلغ كامل',
+    totalAmount: 'المبلغ الكامل',
+    dueDate: 'تاريخ الاستحقاق',
+    paidAmount: 'المبلغ المدفوع'
+  };
 
+  const errors = error.errors.map(err => {
+    const fieldName = fieldNames[err.path[0] as string] || err.path[0];
+    if (err.code === 'invalid_type' && err.received === 'undefined') {
+      return `${fieldName} مطلوب`;
+    }
+    return `${fieldName}: ${err.message}`;
+  });
 
+  return errors.join('، ');
+}
 
 // Configure multer for file uploads
 const upload = multer({
@@ -444,6 +466,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(deposit);
     } catch (error) {
       console.error("Error creating deposit:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: formatZodError(error) });
+      }
       res.status(400).json({ message: "بيانات الرعبون غير صحيحة" });
     }
   });
@@ -464,6 +489,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(deposit);
     } catch (error) {
       console.error("Error updating deposit:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: formatZodError(error) });
+      }
       res.status(400).json({ message: "فشل في تعديل الرعبون" });
     }
   });
@@ -507,6 +535,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(receivable);
     } catch (error) {
       console.error("Error creating receivable:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: formatZodError(error) });
+      }
       res.status(400).json({ message: "بيانات المستحق غير صحيحة" });
     }
   });
@@ -523,6 +554,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(receivable);
     } catch (error) {
       console.error("Error updating receivable:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: formatZodError(error) });
+      }
       res.status(400).json({ message: "فشل في تعديل المستحق" });
     }
   });
