@@ -4,9 +4,31 @@
 
 IQR Control is a comprehensive Arabic-language business management system designed for service-oriented businesses. The application provides an integrated solution for managing customers, financial records, employees, and generating reports. Built with a modern full-stack architecture, it features a glass-morphism UI design with gradient themes and supports multi-user access with role-based permissions.
 
+## Recent Changes
+
+### November 1, 2025 - Replit Environment Setup
+- **Database Configuration**: Updated to use Replit's PostgreSQL database via `DATABASE_URL` environment variable
+- **Session Management**: Now uses `SESSION_SECRET` from Replit environment variables
+- **Dependencies**: Reinstalled npm packages to ensure all dependencies are available
+- **Deployment**: Configured autoscale deployment with build and production start scripts
+- **Server Configuration**: Verified server binds to 0.0.0.0:5000 for Replit networking
+- **Vite Configuration**: Confirmed allowedHosts setting for Replit proxy compatibility
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+## Environment Requirements
+
+### Required Environment Variables
+- **DATABASE_URL**: PostgreSQL connection string (automatically provided by Replit)
+- **SESSION_SECRET**: Secret key for session encryption (automatically provided by Replit)
+- **PORT**: Server port (defaults to 5000, automatically set by Replit)
+
+### Default Admin Credentials
+- Username: `admin`
+- Password: `admin123`
+- ⚠️ **Important**: Change the default admin password after first login in production
 
 ## System Architecture
 
@@ -60,7 +82,7 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 ### Core Infrastructure
-- **Database**: PostgreSQL with Neon serverless driver for scalable data storage
+- **Database**: PostgreSQL (Replit managed) with Neon serverless driver compatibility for scalable data storage
 - **Authentication Provider**: Custom database-based authentication system
 - **File Storage**: Local file system with configurable upload directory
 

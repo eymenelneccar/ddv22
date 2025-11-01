@@ -3,11 +3,12 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Set default environment variables if not provided
+// Prioritize Replit environment variables
 if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = 'postgresql://neondb_owner:npg_j0uJzebEPgs4@ep-old-tooth-adz3pz5j-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+  throw new Error('DATABASE_URL environment variable is required');
 }
 if (!process.env.SESSION_SECRET) {
-  process.env.SESSION_SECRET = 'development-session-secret-change-in-production';
+  throw new Error('SESSION_SECRET environment variable is required');
 }
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development';
@@ -96,7 +97,7 @@ app.use((req, res, next) => {
   }, () => {
     console.log(`✅ IQR Control server running on http://${host}:${port}`);
     console.log(`👤 Login: admin / admin123`);
-    console.log(`💾 Database: Connected to Neon PostgreSQL`);
+    console.log(`💾 Database: Connected to PostgreSQL`);
     log(`serving on port ${port}`);
   });
 })();
