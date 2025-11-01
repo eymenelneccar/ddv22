@@ -32,24 +32,24 @@ export default function Prints() {
     <div className="min-h-screen gradient-bg">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4 space-x-reverse">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 sm:space-x-reverse w-full sm:w-auto">
             <Link href="/">
-              <Button variant="ghost" size="sm" data-testid="button-back">
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Button variant="ghost" size="sm" data-testid="button-back" className="text-sm">
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
                 العودة للرئيسية
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold" data-testid="text-page-title">قسم المطبوعات</h1>
-              <p className="text-gray-300" data-testid="text-page-subtitle">عرض جميع المطبوعات والإيرادات المحققة</p>
+              <h1 className="text-2xl sm:text-3xl font-bold" data-testid="text-page-title">قسم المطبوعات</h1>
+              <p className="text-sm sm:text-base text-gray-300" data-testid="text-page-subtitle">عرض جميع المطبوعات والإيرادات المحققة</p>
             </div>
           </div>
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <GlassCard className="p-6">
             <div className="flex items-center justify-between">
               <div>

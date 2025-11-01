@@ -157,12 +157,12 @@ export default function Expenses() {
     <div className="min-h-screen gradient-bg">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4 space-x-reverse">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 sm:space-x-reverse w-full sm:w-auto">
             <Link href="/">
-              <Button variant="ghost" size="sm" data-testid="button-back">
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Button variant="ghost" size="sm" data-testid="button-back" className="text-sm">
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
                 العودة للرئيسية
               </Button>
             </Link>
