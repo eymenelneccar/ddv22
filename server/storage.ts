@@ -5,6 +5,8 @@ import {
   expenseEntries,
   employees,
   activities,
+  deposits,
+  receivables,
   type User,
   type UpsertUser,
   type Customer,
@@ -18,6 +20,10 @@ import {
   type Activity,
   type InsertActivity,
   type InsertManualUser,
+  type Deposit,
+  type InsertDeposit,
+  type Receivable,
+  type InsertReceivable,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, gte, lte, sql } from "drizzle-orm";
@@ -65,6 +71,21 @@ export interface IStorage {
   // Activity operations
   getRecentActivities(limit?: number): Promise<Activity[]>;
   createActivity(activity: InsertActivity): Promise<Activity>;
+
+  // Deposit operations (الرعبون)
+  getDeposits(customerId?: string): Promise<Deposit[]>;
+  getDeposit(id: string): Promise<Deposit | undefined>;
+  createDeposit(deposit: InsertDeposit): Promise<Deposit>;
+  updateDeposit(id: string, data: Partial<InsertDeposit>): Promise<Deposit | null>;
+  deleteDeposit(id: string): Promise<void>;
+
+  // Receivable operations (المستحقات)
+  getReceivables(customerId?: string): Promise<Receivable[]>;
+  getReceivable(id: string): Promise<Receivable | undefined>;
+  createReceivable(receivable: InsertReceivable): Promise<Receivable>;
+  updateReceivable(id: string, data: Partial<InsertReceivable>): Promise<Receivable | null>;
+  deleteReceivable(id: string): Promise<void>;
+  getOverdueReceivables(): Promise<Receivable[]>;
 
   // Dashboard statistics
   getDashboardStats(): Promise<{
@@ -722,6 +743,137 @@ class MemoryStorage implements IStorage {
     return activity;
   }
 
+  // Deposit operations (الرعبون)
+  async getDeposits(customerId?: string): Promise<Deposit[]> {
+    if (customerId) {
+      return await db
+        .select()
+        .from(deposits)
+        .where(eq(deposits.customerId, customerId))
+        .orderBy(desc(deposits.createdAt));
+    }
+    return await db.select().from(deposits).orderBy(desc(deposits.createdAt));
+  }
+
+  async getDeposit(id: string): Promise<Deposit | undefined> {
+    const [deposit] = await db.select().from(deposits).where(eq(deposits.id, id));
+    return deposit;
+  }
+
+  async createDeposit(depositData: InsertDeposit): Promise<Deposit> {
+    const [deposit] = await db
+      .insert(deposits)
+      .values(depositData)
+      .returning();
+
+    // Log activity
+    await this.createActivity({
+      type: 'deposit_added',
+      description: `تم تسجيل رعبون بقيمة ${depositData.amount} د.ع`,
+      relatedId: deposit.id,
+    });
+
+    return deposit;
+  }
+
+  async updateDeposit(id: string, data: Partial<InsertDeposit>): Promise<Deposit | null> {
+    const [deposit] = await db
+      .update(deposits)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(deposits.id, id))
+      .returning();
+    
+    if (deposit) {
+      await this.createActivity({
+        type: 'deposit_updated',
+        description: `تم تعديل رعبون`,
+        relatedId: deposit.id,
+      });
+    }
+    
+    return deposit || null;
+  }
+
+  async deleteDeposit(id: string): Promise<void> {
+    await db.delete(deposits).where(eq(deposits.id, id));
+    
+    await this.createActivity({
+      type: 'deposit_deleted',
+      description: `تم حذف رعبون`,
+      relatedId: id,
+    });
+  }
+
+  // Receivable operations (المستحقات)
+  async getReceivables(customerId?: string): Promise<Receivable[]> {
+    if (customerId) {
+      return await db
+        .select()
+        .from(receivables)
+        .where(eq(receivables.customerId, customerId))
+        .orderBy(desc(receivables.createdAt));
+    }
+    return await db.select().from(receivables).orderBy(desc(receivables.createdAt));
+  }
+
+  async getReceivable(id: string): Promise<Receivable | undefined> {
+    const [receivable] = await db.select().from(receivables).where(eq(receivables.id, id));
+    return receivable;
+  }
+
+  async createReceivable(receivableData: InsertReceivable): Promise<Receivable> {
+    const [receivable] = await db
+      .insert(receivables)
+      .values(receivableData)
+      .returning();
+
+    // Log activity
+    await this.createActivity({
+      type: 'receivable_added',
+      description: `تم تسجيل مستحق بقيمة ${receivableData.amount} د.ع`,
+      relatedId: receivable.id,
+    });
+
+    return receivable;
+  }
+
+  async updateReceivable(id: string, data: Partial<InsertReceivable>): Promise<Receivable | null> {
+    const [receivable] = await db
+      .update(receivables)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(receivables.id, id))
+      .returning();
+    
+    if (receivable) {
+      await this.createActivity({
+        type: 'receivable_updated',
+        description: `تم تعديل مستحق`,
+        relatedId: receivable.id,
+      });
+    }
+    
+    return receivable || null;
+  }
+
+  async deleteReceivable(id: string): Promise<void> {
+    await db.delete(receivables).where(eq(receivables.id, id));
+    
+    await this.createActivity({
+      type: 'receivable_deleted',
+      description: `تم حذف مستحق`,
+      relatedId: id,
+    });
+  }
+
+  async getOverdueReceivables(): Promise<Receivable[]> {
+    const today = new Date().toISOString().split('T')[0];
+    return await db
+      .select()
+      .from(receivables)
+      .where(sql`${receivables.dueDate} < ${today} AND ${receivables.status} = 'pending'`)
+      .orderBy(receivables.dueDate);
+  }
+
   async getDashboardStats() {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -763,6 +915,52 @@ class MemoryStorage implements IStorage {
       totalSalaries,
       financialStatus,
     };
+  }
+
+  // Deposit operations - stub implementations for MemoryStorage
+  async getDeposits(customerId?: string): Promise<Deposit[]> {
+    return [];
+  }
+
+  async getDeposit(id: string): Promise<Deposit | undefined> {
+    return undefined;
+  }
+
+  async createDeposit(depositData: InsertDeposit): Promise<Deposit> {
+    throw new Error("Deposit operations require database storage");
+  }
+
+  async updateDeposit(id: string, data: Partial<InsertDeposit>): Promise<Deposit | null> {
+    return null;
+  }
+
+  async deleteDeposit(id: string): Promise<void> {
+    // No-op
+  }
+
+  // Receivable operations - stub implementations for MemoryStorage
+  async getReceivables(customerId?: string): Promise<Receivable[]> {
+    return [];
+  }
+
+  async getReceivable(id: string): Promise<Receivable | undefined> {
+    return undefined;
+  }
+
+  async createReceivable(receivableData: InsertReceivable): Promise<Receivable> {
+    throw new Error("Receivable operations require database storage");
+  }
+
+  async updateReceivable(id: string, data: Partial<InsertReceivable>): Promise<Receivable | null> {
+    return null;
+  }
+
+  async deleteReceivable(id: string): Promise<void> {
+    // No-op
+  }
+
+  async getOverdueReceivables(): Promise<Receivable[]> {
+    return [];
   }
 
   async updateUserProfile(userId: string, updates: any): Promise<void> {

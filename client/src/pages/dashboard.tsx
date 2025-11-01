@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   Warehouse,
   Eye,
-  EyeOff
+  EyeOff,
+  Wallet
 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -123,12 +124,12 @@ export default function Dashboard() {
       stats: ["إدارة خارجية", "dijital.menu"],
     },
     {
-      title: "إنشاء الحسابات",
-      description: "إنشاء حسابات مستخدمين بصلاحيات محددة",
-      icon: UserPlus,
+      title: "الرعبون والمستحقات",
+      description: "تسجيل الرعبون من العملاء وتتبع المستحقات مع قوالب كاملة",
+      icon: Wallet,
       gradient: "purple",
-      link: "/user-management",
-      stats: ["إدارة المستخدمين", "صلاحيات متقدمة"],
+      link: "/deposits-receivables",
+      stats: ["إدارة مالية", "متكاملة"],
     },
     {
       title: "المستثمرين",

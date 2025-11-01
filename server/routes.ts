@@ -10,7 +10,9 @@ import {
   insertIncomeEntrySchema,
   insertExpenseEntrySchema,
   insertEmployeeSchema,
-  insertManualUserSchema
+  insertManualUserSchema,
+  insertDepositSchema,
+  insertReceivableSchema
 } from "@shared/schema";
 
 
@@ -380,6 +382,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting expense entry:", error);
       res.status(500).json({ message: "فشل في حذف الإخراج" });
+    }
+  });
+
+  // Deposit routes (الرعبون)
+  app.get('/api/deposits', isAuthenticated, async (req, res) => {
+    try {
+      const { customerId } = req.query;
+      const deposits = await storage.getDeposits(customerId as string | undefined);
+      res.json(deposits);
+    } catch (error) {
+      console.error("Error fetching deposits:", error);
+      res.status(500).json({ message: "فشل في جلب الرعبون" });
+    }
+  });
+
+  app.post('/api/deposits', isAuthenticated, upload.single('receipt'), async (req, res) => {
+    try {
+      const validatedData = insertDepositSchema.parse({
+        ...req.body,
+        receiptUrl: req.file ? `/uploads/${req.file.filename}` : null
+      });
+      
+      const deposit = await storage.createDeposit(validatedData);
+      res.status(201).json(deposit);
+    } catch (error) {
+      console.error("Error creating deposit:", error);
+      res.status(400).json({ message: "بيانات الرعبون غير صحيحة" });
+    }
+  });
+
+  app.put('/api/deposits/:id', isAuthenticated, upload.single('receipt'), async (req, res) => {
+    try {
+      const validatedData = insertDepositSchema.parse({
+        ...req.body,
+        receiptUrl: req.file ? `/uploads/${req.file.filename}` : req.body.receiptUrl
+      });
+      
+      const deposit = await storage.updateDeposit(req.params.id, validatedData);
+      
+      if (!deposit) {
+        return res.status(404).json({ message: "الرعبون غير موجود" });
+      }
+      
+      res.json(deposit);
+    } catch (error) {
+      console.error("Error updating deposit:", error);
+      res.status(400).json({ message: "فشل في تعديل الرعبون" });
+    }
+  });
+
+  app.delete('/api/deposits/:id', isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteDeposit(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting deposit:", error);
+      res.status(500).json({ message: "فشل في حذف الرعبون" });
+    }
+  });
+
+  // Receivable routes (المستحقات)
+  app.get('/api/receivables', isAuthenticated, async (req, res) => {
+    try {
+      const { customerId } = req.query;
+      const receivables = await storage.getReceivables(customerId as string | undefined);
+      res.json(receivables);
+    } catch (error) {
+      console.error("Error fetching receivables:", error);
+      res.status(500).json({ message: "فشل في جلب المستحقات" });
+    }
+  });
+
+  app.get('/api/receivables/overdue', isAuthenticated, async (req, res) => {
+    try {
+      const overdueReceivables = await storage.getOverdueReceivables();
+      res.json(overdueReceivables);
+    } catch (error) {
+      console.error("Error fetching overdue receivables:", error);
+      res.status(500).json({ message: "فشل في جلب المستحقات المتأخرة" });
+    }
+  });
+
+  app.post('/api/receivables', isAuthenticated, async (req, res) => {
+    try {
+      const validatedData = insertReceivableSchema.parse(req.body);
+      const receivable = await storage.createReceivable(validatedData);
+      res.status(201).json(receivable);
+    } catch (error) {
+      console.error("Error creating receivable:", error);
+      res.status(400).json({ message: "بيانات المستحق غير صحيحة" });
+    }
+  });
+
+  app.put('/api/receivables/:id', isAuthenticated, async (req, res) => {
+    try {
+      const validatedData = insertReceivableSchema.parse(req.body);
+      const receivable = await storage.updateReceivable(req.params.id, validatedData);
+      
+      if (!receivable) {
+        return res.status(404).json({ message: "المستحق غير موجود" });
+      }
+      
+      res.json(receivable);
+    } catch (error) {
+      console.error("Error updating receivable:", error);
+      res.status(400).json({ message: "فشل في تعديل المستحق" });
+    }
+  });
+
+  app.delete('/api/receivables/:id', isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteReceivable(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting receivable:", error);
+      res.status(500).json({ message: "فشل في حذف المستحق" });
     }
   });
 

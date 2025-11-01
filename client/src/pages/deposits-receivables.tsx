@@ -1,0 +1,617 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Link } from "wouter";
+import { ArrowRight, Plus, Wallet, Receipt, Upload, Edit2, Trash2, CalendarDays } from "lucide-react";
+import { Header } from "@/components/layout/header";
+import { GlassCard } from "@/components/ui/glass-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { FileUpload } from "@/components/ui/file-upload";
+import { useToast } from "@/hooks/use-toast";
+import { insertDepositSchema, insertReceivableSchema } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { isUnauthorizedError } from "@/lib/authUtils";
+import { format } from "date-fns";
+
+export default function DepositsReceivables() {
+  const [activeTab, setActiveTab] = useState("deposits");
+  const [isAddDepositOpen, setIsAddDepositOpen] = useState(false);
+  const [isAddReceivableOpen, setIsAddReceivableOpen] = useState(false);
+  const [isEditDepositOpen, setIsEditDepositOpen] = useState(false);
+  const [isEditReceivableOpen, setIsEditReceivableOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [editingDeposit, setEditingDeposit] = useState<any>(null);
+  const [editingReceivable, setEditingReceivable] = useState<any>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const depositForm = useForm({
+    resolver: zodResolver(insertDepositSchema),
+    defaultValues: {
+      customerId: "",
+      amount: "",
+      description: "",
+      status: "active",
+    },
+  });
+
+  const receivableForm = useForm({
+    resolver: zodResolver(insertReceivableSchema),
+    defaultValues: {
+      customerId: "",
+      amount: "",
+      dueDate: "",
+      description: "",
+      status: "pending",
+      paidAmount: "0",
+      notes: "",
+    },
+  });
+
+  const { data: deposits, isLoading: depositsLoading } = useQuery({
+    queryKey: ["/api/deposits"]
+  });
+
+  const { data: receivables, isLoading: receivablesLoading } = useQuery({
+    queryKey: ["/api/receivables"]
+  });
+
+  const { data: customers } = useQuery({
+    queryKey: ["/api/customers"]
+  });
+
+  // Deposit mutations
+  const addDepositMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const formData = new FormData();
+      Object.keys(data).forEach(key => {
+        if (data[key] !== null && data[key] !== undefined && data[key] !== '') {
+          formData.append(key, data[key]);
+        }
+      });
+      
+      if (selectedFile) {
+        formData.append('receipt', selectedFile);
+      }
+
+      return await fetch("/api/deposits", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      }).then(async res => {
+        if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+        return res.json();
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      setIsAddDepositOpen(false);
+      depositForm.reset();
+      setSelectedFile(null);
+      toast({
+        title: "تم بنجاح",
+        description: "تم تسجيل الرعبون بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "فشل في تسجيل الرعبون",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const editDepositMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const formData = new FormData();
+      Object.keys(data).forEach(key => {
+        if (data[key] !== null && data[key] !== undefined && data[key] !== '') {
+          formData.append(key, data[key]);
+        }
+      });
+      
+      if (selectedFile) {
+        formData.append('receipt', selectedFile);
+      }
+
+      return await fetch(`/api/deposits/${id}`, {
+        method: "PUT",
+        body: formData,
+        credentials: "include",
+      }).then(async res => {
+        if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+        return res.json();
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      setIsEditDepositOpen(false);
+      setEditingDeposit(null);
+      depositForm.reset();
+      setSelectedFile(null);
+      toast({
+        title: "تم بنجاح",
+        description: "تم تعديل الرعبون بنجاح",
+      });
+    },
+  });
+
+  const deleteDepositMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await fetch(`/api/deposits/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      }).then(async res => {
+        if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف الرعبون بنجاح",
+      });
+    },
+  });
+
+  // Receivable mutations
+  const addReceivableMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await fetch("/api/receivables", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      }).then(async res => {
+        if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+        return res.json();
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/receivables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      setIsAddReceivableOpen(false);
+      receivableForm.reset();
+      toast({
+        title: "تم بنجاح",
+        description: "تم تسجيل المستحق بنجاح",
+      });
+    },
+  });
+
+  const editReceivableMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return await fetch(`/api/receivables/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      }).then(async res => {
+        if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+        return res.json();
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/receivables"] });
+      setIsEditReceivableOpen(false);
+      setEditingReceivable(null);
+      receivableForm.reset();
+      toast({
+        title: "تم بنجاح",
+        description: "تم تعديل المستحق بنجاح",
+      });
+    },
+  });
+
+  const deleteReceivableMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await fetch(`/api/receivables/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      }).then(async res => {
+        if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/receivables"] });
+      toast({
+        title: "تم بنجاح",
+        description: "تم حذف المستحق بنجاح",
+      });
+    },
+  });
+
+  const getCustomerName = (customerId: string) => {
+    const customer = customers?.find((c: any) => c.id === customerId);
+    return customer?.name || "غير معروف";
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusColors = {
+      active: "bg-green-500/20 text-green-300",
+      refunded: "bg-red-500/20 text-red-300",
+      applied: "bg-blue-500/20 text-blue-300",
+      pending: "bg-yellow-500/20 text-yellow-300",
+      paid: "bg-green-500/20 text-green-300",
+      overdue: "bg-red-500/20 text-red-300",
+      cancelled: "bg-gray-500/20 text-gray-300",
+    };
+
+    const statusLabels = {
+      active: "نشط",
+      refunded: "مسترد",
+      applied: "مطبق",
+      pending: "معلق",
+      paid: "مدفوع",
+      overdue: "متأخر",
+      cancelled: "ملغي",
+    };
+
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs ${statusColors[status as keyof typeof statusColors] || statusColors.active}`}>
+        {statusLabels[status as keyof typeof statusLabels] || status}
+      </span>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" dir="rtl">
+      <Header />
+      <main className="container mx-auto p-6">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+            </Link>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+              الرعبون والمستحقات
+            </h1>
+          </div>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-800/50">
+            <TabsTrigger value="deposits" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500">
+              <Wallet className="w-4 h-4 mr-2" />
+              الرعبون
+            </TabsTrigger>
+            <TabsTrigger value="receivables" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500">
+              <Receipt className="w-4 h-4 mr-2" />
+              المستحقات
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="deposits">
+            <GlassCard className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">قائمة الرعبون</h2>
+                <Dialog open={isAddDepositOpen} onOpenChange={setIsAddDepositOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-gradient-to-r from-purple-500 to-pink-500">
+                      <Plus className="w-4 h-4 mr-2" />
+                      إضافة رعبون
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-gray-800/95 border-gray-700">
+                    <DialogHeader>
+                      <DialogTitle>إضافة رعبون جديد</DialogTitle>
+                    </DialogHeader>
+                    <Form {...depositForm}>
+                      <form onSubmit={depositForm.handleSubmit((data) => addDepositMutation.mutate(data))} className="space-y-4">
+                        <FormField
+                          control={depositForm.control}
+                          name="customerId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>العميل</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="اختر العميل" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {customers?.map((customer: any) => (
+                                    <SelectItem key={customer.id} value={customer.id}>
+                                      {customer.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={depositForm.control}
+                          name="amount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>المبلغ (د.ع)</FormLabel>
+                              <FormControl>
+                                <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={depositForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>الوصف</FormLabel>
+                              <FormControl>
+                                <Input placeholder="وصف الرعبون..." {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={depositForm.control}
+                          name="status"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>الحالة</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="active">نشط</SelectItem>
+                                  <SelectItem value="applied">مطبق</SelectItem>
+                                  <SelectItem value="refunded">مسترد</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div>
+                          <Label>إيصال (اختياري)</Label>
+                          <FileUpload
+                            onFileSelect={setSelectedFile}
+                            selectedFile={selectedFile}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button type="submit" className="flex-1">حفظ</Button>
+                          <Button type="button" variant="outline" onClick={() => setIsAddDepositOpen(false)}>إلغاء</Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              <div className="space-y-3">
+                {depositsLoading ? (
+                  <div className="text-center py-12 text-gray-400">جاري التحميل...</div>
+                ) : deposits && deposits.length > 0 ? (
+                  deposits.map((deposit: any) => (
+                    <div key={deposit.id} className="p-4 bg-gray-800/50 rounded-lg flex justify-between items-center">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold">{getCustomerName(deposit.customerId)}</h3>
+                          {getStatusBadge(deposit.status)}
+                        </div>
+                        <div className="text-gray-400 text-sm space-y-1">
+                          <p>المبلغ: <span className="text-white font-semibold">{Number(deposit.amount).toLocaleString()} د.ع</span></p>
+                          {deposit.description && <p>الوصف: {deposit.description}</p>}
+                          <p>التاريخ: {format(new Date(deposit.createdAt), "yyyy-MM-dd")}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="icon" variant="ghost" onClick={() => deleteDepositMutation.mutate(deposit.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12 text-gray-400">
+                    <Wallet className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>لا توجد رعبون مسجلة بعد</p>
+                  </div>
+                )}
+              </div>
+            </GlassCard>
+          </TabsContent>
+
+          <TabsContent value="receivables">
+            <GlassCard className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">قائمة المستحقات</h2>
+                <Dialog open={isAddReceivableOpen} onOpenChange={setIsAddReceivableOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-gradient-to-r from-purple-500 to-pink-500">
+                      <Plus className="w-4 h-4 mr-2" />
+                      إضافة مستحق
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-gray-800/95 border-gray-700">
+                    <DialogHeader>
+                      <DialogTitle>إضافة مستحق جديد</DialogTitle>
+                    </DialogHeader>
+                    <Form {...receivableForm}>
+                      <form onSubmit={receivableForm.handleSubmit((data) => addReceivableMutation.mutate(data))} className="space-y-4">
+                        <FormField
+                          control={receivableForm.control}
+                          name="customerId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>العميل</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="اختر العميل" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {customers?.map((customer: any) => (
+                                    <SelectItem key={customer.id} value={customer.id}>
+                                      {customer.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={receivableForm.control}
+                          name="amount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>المبلغ الكلي (د.ع)</FormLabel>
+                              <FormControl>
+                                <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={receivableForm.control}
+                          name="dueDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>تاريخ الاستحقاق</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={receivableForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>الوصف</FormLabel>
+                              <FormControl>
+                                <Input placeholder="وصف المستحق..." {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={receivableForm.control}
+                          name="paidAmount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>المبلغ المدفوع (د.ع)</FormLabel>
+                              <FormControl>
+                                <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={receivableForm.control}
+                          name="status"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>الحالة</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="pending">معلق</SelectItem>
+                                  <SelectItem value="paid">مدفوع</SelectItem>
+                                  <SelectItem value="overdue">متأخر</SelectItem>
+                                  <SelectItem value="cancelled">ملغي</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={receivableForm.control}
+                          name="notes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>ملاحظات</FormLabel>
+                              <FormControl>
+                                <Input placeholder="ملاحظات إضافية..." {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex gap-2">
+                          <Button type="submit" className="flex-1">حفظ</Button>
+                          <Button type="button" variant="outline" onClick={() => setIsAddReceivableOpen(false)}>إلغاء</Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              <div className="space-y-3">
+                {receivablesLoading ? (
+                  <div className="text-center py-12 text-gray-400">جاري التحميل...</div>
+                ) : receivables && receivables.length > 0 ? (
+                  receivables.map((receivable: any) => (
+                    <div key={receivable.id} className="p-4 bg-gray-800/50 rounded-lg flex justify-between items-center">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold">{getCustomerName(receivable.customerId)}</h3>
+                          {getStatusBadge(receivable.status)}
+                        </div>
+                        <div className="text-gray-400 text-sm space-y-1">
+                          <p>المبلغ الكلي: <span className="text-white font-semibold">{Number(receivable.amount).toLocaleString()} د.ع</span></p>
+                          <p>المبلغ المدفوع: <span className="text-green-400 font-semibold">{Number(receivable.paidAmount).toLocaleString()} د.ع</span></p>
+                          <p>المتبقي: <span className="text-yellow-400 font-semibold">{(Number(receivable.amount) - Number(receivable.paidAmount)).toLocaleString()} د.ع</span></p>
+                          <p>الوصف: {receivable.description}</p>
+                          <p className="flex items-center gap-2">
+                            <CalendarDays className="w-3 h-3" />
+                            تاريخ الاستحقاق: {format(new Date(receivable.dueDate), "yyyy-MM-dd")}
+                          </p>
+                          {receivable.notes && <p>ملاحظات: {receivable.notes}</p>}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="icon" variant="ghost" onClick={() => deleteReceivableMutation.mutate(receivable.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12 text-gray-400">
+                    <Receipt className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>لا توجد مستحقات مسجلة بعد</p>
+                  </div>
+                )}
+              </div>
+            </GlassCard>
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
+}

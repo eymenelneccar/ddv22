@@ -14,6 +14,7 @@ import Prints from "@/pages/prints";
 import Employees from "@/pages/employees";
 import Reports from "@/pages/reports";
 import UserManagement from "@/pages/user-management";
+import DepositsReceivables from "@/pages/deposits-receivables";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -30,6 +31,7 @@ function Router() {
           <Route path="/expenses" component={Expenses} />
           <Route path="/prints" component={Prints} />
           <Route path="/employees" component={Employees} />
+          <Route path="/deposits-receivables" component={DepositsReceivables} />
           <Route path="/reports" component={Reports} />
           <Route path="/user-management" component={UserManagement} />
         </>
