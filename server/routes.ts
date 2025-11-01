@@ -405,6 +405,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const deposit = await storage.createDeposit(validatedData);
+      
+      // Create income entry for the deposit amount
+      await storage.createIncomeEntry({
+        customerId: validatedData.customerId,
+        type: 'deposit',
+        amount: validatedData.amount,
+        description: `رعبون: ${validatedData.description || 'دفعة مقدمة'}`,
+        receiptUrl: validatedData.receiptUrl
+      });
+      
+      // If not full payment, create a receivable for the difference
+      if (validatedData.isFullPayment === false && validatedData.totalAmount) {
+        const remainingAmount = Number(validatedData.totalAmount) - Number(validatedData.amount);
+        if (remainingAmount > 0) {
+          const dueDate = new Date();
+          dueDate.setDate(dueDate.getDate() + 30);
+          
+          await storage.createReceivable({
+            customerId: validatedData.customerId,
+            amount: remainingAmount.toString(),
+            dueDate: dueDate.toISOString().split('T')[0],
+            description: `المبلغ المتبقي من الرعبون: ${validatedData.description || 'دفعة مقدمة'}`,
+            status: 'pending',
+            paidAmount: '0'
+          });
+        }
+      }
+      
+      // Log activity
+      await storage.createActivity({
+        type: 'deposit_added',
+        description: `تم تسجيل رعبون بقيمة ${validatedData.amount} د.ع`,
+        relatedId: deposit.id,
+      });
+      
       res.status(201).json(deposit);
     } catch (error) {
       console.error("Error creating deposit:", error);
@@ -498,6 +533,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting receivable:", error);
       res.status(500).json({ message: "فشل في حذف المستحق" });
+    }
+  });
+
+  app.post('/api/receivables/:id/pay', isAuthenticated, upload.single('receipt'), async (req, res) => {
+    try {
+      const receivable = await storage.getReceivable(req.params.id);
+      if (!receivable) {
+        return res.status(404).json({ message: "المستحق غير موجود" });
+      }
+
+      const paymentAmount = parseFloat(req.body.amount);
+      if (isNaN(paymentAmount) || paymentAmount <= 0) {
+        return res.status(400).json({ message: "المبلغ المدفوع غير صحيح" });
+      }
+
+      const currentPaid = parseFloat(receivable.paidAmount || '0');
+      const totalAmount = parseFloat(receivable.amount);
+      const newPaidAmount = currentPaid + paymentAmount;
+
+      if (newPaidAmount > totalAmount) {
+        return res.status(400).json({ message: "المبلغ المدفوع أكبر من المستحق" });
+      }
+
+      // Update receivable
+      const status = newPaidAmount >= totalAmount ? 'paid' : 'pending';
+      await storage.updateReceivable(req.params.id, {
+        paidAmount: newPaidAmount.toString(),
+        status: status,
+        notes: req.body.notes || receivable.notes
+      });
+
+      // Create income entry for the payment
+      await storage.createIncomeEntry({
+        customerId: receivable.customerId,
+        type: 'receivable_payment',
+        amount: paymentAmount.toString(),
+        description: `تسديد مستحق: ${receivable.description}`,
+        receiptUrl: req.file ? `/uploads/${req.file.filename}` : null
+      });
+
+      // Log activity
+      await storage.createActivity({
+        type: 'receivable_paid',
+        description: `تم تسديد ${paymentAmount} د.ع من المستحق (${newPaidAmount}/${totalAmount} د.ع)`,
+        relatedId: receivable.id,
+      });
+
+      res.json({ message: "تم تسجيل الدفعة بنجاح", newPaidAmount, status });
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      res.status(500).json({ message: "فشل في تسجيل الدفعة" });
     }
   });
 
