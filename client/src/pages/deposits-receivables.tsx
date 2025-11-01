@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useToast } from "@/hooks/use-toast";
-import { insertDepositSchema, insertReceivableSchema } from "@shared/schema";
+import { insertDepositSchema, insertReceivableSchema, type Deposit, type Receivable, type Customer } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { format } from "date-fns";
@@ -55,15 +55,15 @@ export default function DepositsReceivables() {
     },
   });
 
-  const { data: deposits, isLoading: depositsLoading } = useQuery({
+  const { data: deposits = [], isLoading: depositsLoading } = useQuery<Deposit[]>({
     queryKey: ["/api/deposits"]
   });
 
-  const { data: receivables, isLoading: receivablesLoading } = useQuery({
+  const { data: receivables = [], isLoading: receivablesLoading } = useQuery<Receivable[]>({
     queryKey: ["/api/receivables"]
   });
 
-  const { data: customers } = useQuery({
+  const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ["/api/customers"]
   });
 
@@ -101,10 +101,20 @@ export default function DepositsReceivables() {
         description: "تم تسجيل الرعبون بنجاح",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
+      let errorMessage = "فشل في تسجيل الرعبون";
+      try {
+        const errorText = error.message.split(': ')[1];
+        if (errorText) {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorMessage;
+        }
+      } catch (e) {
+        console.error("Error parsing error message:", error.message);
+      }
       toast({
         title: "خطأ",
-        description: "فشل في تسجيل الرعبون",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -385,7 +395,6 @@ export default function DepositsReceivables() {
                           <Label>إيصال (اختياري)</Label>
                           <FileUpload
                             onFileSelect={setSelectedFile}
-                            selectedFile={selectedFile}
                           />
                         </div>
                         <div className="flex gap-2">
