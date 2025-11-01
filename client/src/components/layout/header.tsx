@@ -73,28 +73,28 @@ export function Header() {
   };
 
   return (
-    <header className="glass-card border-b border-white/20 px-6 py-4 sticky top-0 z-50 mx-4 mt-4 rounded-2xl">
+    <header className="glass-card border-b border-white/20 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50 mx-2 sm:mx-4 mt-2 sm:mt-4 rounded-xl sm:rounded-2xl">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-4 space-x-reverse">
-          <div className="w-12 h-12 gradient-purple rounded-full flex items-center justify-center">
-            <i className="fas fa-chart-line text-xl text-white"></i>
+        <div className="flex items-center space-x-2 sm:space-x-4 space-x-reverse">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 gradient-purple rounded-full flex items-center justify-center">
+            <i className="fas fa-chart-line text-lg sm:text-xl text-white"></i>
           </div>
           <div>
-            <h1 className="text-2xl font-bold" data-testid="text-app-title">IQR CONTROL</h1>
-            <p className="text-sm text-gray-300" data-testid="text-app-subtitle">نظام إدارة الأعمال المتكامل</p>
+            <h1 className="text-lg sm:text-2xl font-bold" data-testid="text-app-title">IQR CONTROL</h1>
+            <p className="text-xs sm:text-sm text-gray-300 hidden sm:block" data-testid="text-app-subtitle">نظام إدارة الأعمال المتكامل</p>
           </div>
         </div>
-        <div className="flex items-center space-x-4 space-x-reverse">
+        <div className="flex items-center space-x-2 sm:space-x-4 space-x-reverse">
           <button 
-            className="p-2 glass-card rounded-full hover:bg-white/20 transition-all duration-300"
+            className="p-1.5 sm:p-2 glass-card rounded-full hover:bg-white/20 transition-all duration-300"
             data-testid="button-notifications"
           >
-            <Bell className="w-5 h-5" />
+            <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
             <DialogTrigger asChild>
-              <div className="flex items-center space-x-3 space-x-reverse cursor-pointer hover:bg-white/10 rounded-lg p-2 transition-all duration-300" data-testid="button-profile">
-                <div className="w-10 h-10 gradient-blue rounded-full flex items-center justify-center">
+              <div className="flex items-center space-x-2 sm:space-x-3 space-x-reverse cursor-pointer hover:bg-white/10 rounded-lg p-1.5 sm:p-2 transition-all duration-300" data-testid="button-profile">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 gradient-blue rounded-full flex items-center justify-center">
                   {user?.profileImageUrl ? (
                     <img 
                       src={user.profileImageUrl} 
@@ -102,10 +102,10 @@ export function Header() {
                       className="w-full h-full rounded-full object-cover" 
                     />
                   ) : (
-                    <User className="w-5 h-5" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
                   )}
                 </div>
-                <span className="text-sm font-medium" data-testid="text-username">
+                <span className="text-xs sm:text-sm font-medium hidden sm:inline" data-testid="text-username">
                   أيمن النجار
                 </span>
               </div>
@@ -157,10 +157,10 @@ export function Header() {
                   </div>
                 </div>
                 
-                <div className="flex space-x-3 space-x-reverse">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 sm:space-x-reverse">
                   <Button 
                     variant="outline" 
-                    className="flex-1 border-blue-400 text-blue-400 hover:bg-blue-400/10"
+                    className="w-full sm:flex-1 border-blue-400 text-blue-400 hover:bg-blue-400/10"
                     onClick={() => setIsProfileEditOpen(true)}
                     data-testid="button-profile-edit"
                   >
@@ -169,7 +169,7 @@ export function Header() {
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="flex-1 border-red-400 text-red-400 hover:bg-red-400/10"
+                    className="w-full sm:flex-1 border-red-400 text-red-400 hover:bg-red-400/10"
                     onClick={async () => {
                       try {
                         await logout();
@@ -280,9 +280,9 @@ export function Header() {
                   </div>
                 </div>
 
-                <div className="flex space-x-3 space-x-reverse">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 sm:space-x-reverse">
                   <Button 
-                    className="flex-1 gradient-blue hover:scale-105 transition-transform"
+                    className="w-full sm:flex-1 gradient-blue hover:scale-105 transition-transform"
                     onClick={handleSaveProfile}
                     data-testid="button-save-profile"
                   >
@@ -291,7 +291,7 @@ export function Header() {
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="flex-1 border-gray-400 text-gray-400 hover:bg-gray-400/10"
+                    className="w-full sm:flex-1 border-gray-400 text-gray-400 hover:bg-gray-400/10"
                     onClick={() => setIsProfileEditOpen(false)}
                     data-testid="button-cancel-profile-edit"
                   >

@@ -173,43 +173,43 @@ export default function Dashboard() {
     <div className="min-h-screen gradient-bg">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
         {/* Dashboard Header */}
-        <div className="mb-8 flex justify-between items-center">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-3xl font-bold mb-2" data-testid="text-dashboard-title">لوحة التحكم الرئيسية</h2>
-            <p className="text-gray-300" data-testid="text-dashboard-subtitle">إدارة شاملة لجميع عمليات الشركة</p>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2" data-testid="text-dashboard-title">لوحة التحكم الرئيسية</h2>
+            <p className="text-sm sm:text-base text-gray-300" data-testid="text-dashboard-subtitle">إدارة شاملة لجميع عمليات الشركة</p>
           </div>
           <button
             onClick={() => setHideNumbers(!hideNumbers)}
-            className="flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+            className="flex items-center space-x-2 space-x-reverse px-3 sm:px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm sm:text-base"
             data-testid="button-toggle-visibility"
           >
-            {hideNumbers ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            <span className="text-sm">{hideNumbers ? "إظهار الأرقام" : "إخفاء الأرقام"}</span>
+            {hideNumbers ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
+            <span className="text-xs sm:text-sm">{hideNumbers ? "إظهار الأرقام" : "إخفاء الأرقام"}</span>
           </button>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           {quickStats.map((stat, index) => (
             <GlassCard 
               key={index}
-              className="p-6 hover:scale-105 transition-transform duration-300"
+              className="p-3 sm:p-6 hover:scale-105 transition-transform duration-300"
               data-testid={`card-stat-${index}`}
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-300 text-sm" data-testid={`text-stat-title-${index}`}>{stat.title}</p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                <div className="w-full sm:w-auto">
+                  <p className="text-gray-300 text-xs sm:text-sm mb-1" data-testid={`text-stat-title-${index}`}>{stat.title}</p>
                   <p 
-                    className={`text-2xl font-bold ${stat.warning ? 'text-red-400' : ''}`}
+                    className={`text-lg sm:text-2xl font-bold ${stat.warning ? 'text-red-400' : ''}`}
                     data-testid={`text-stat-value-${index}`}
                   >
                     {statsLoading ? "..." : formatValue(stat.value)}
                   </p>
                 </div>
-                <div className={`w-12 h-12 gradient-${stat.gradient} rounded-full flex items-center justify-center`}>
-                  <stat.icon className="w-6 h-6" />
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 gradient-${stat.gradient} rounded-full flex items-center justify-center`}>
+                  <stat.icon className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
               </div>
             </GlassCard>
@@ -217,7 +217,7 @@ export default function Dashboard() {
         </div>
 
         {/* Main Modules Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 mb-8 sm:mb-12">
           {modules.map((module, index) => (
             <ModuleCard
               key={index}
@@ -230,8 +230,8 @@ export default function Dashboard() {
 
         {/* Recent Activities */}
         <div>
-          <h3 className="text-2xl font-bold mb-6" data-testid="text-recent-activities">النشاطات الأخيرة</h3>
-          <GlassCard className="p-6">
+          <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" data-testid="text-recent-activities">النشاطات الأخيرة</h3>
+          <GlassCard className="p-3 sm:p-6">
             <div className="space-y-4">
               {activitiesLoading ? (
                 <div className="text-center py-8">
@@ -242,21 +242,21 @@ export default function Dashboard() {
                 activities.map((activity: any, index: number) => (
                   <div 
                     key={activity.id} 
-                    className="flex items-center justify-between p-4 bg-white/5 rounded-xl"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-white/5 rounded-xl gap-2 sm:gap-0"
                     data-testid={`activity-${index}`}
                   >
-                    <div className="flex items-center space-x-4 space-x-reverse">
-                      <div className={`w-10 h-10 gradient-${getActivityGradient(activity.type)} rounded-full flex items-center justify-center`}>
-                        <Plus className="w-5 h-5" />
+                    <div className="flex items-center space-x-3 sm:space-x-4 space-x-reverse w-full sm:w-auto">
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 gradient-${getActivityGradient(activity.type)} rounded-full flex items-center justify-center flex-shrink-0`}>
+                        <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                       </div>
-                      <div>
-                        <p className="font-medium" data-testid={`text-activity-description-${index}`}>{activity.description}</p>
-                        <p className="text-sm text-gray-400" data-testid={`text-activity-time-${index}`}>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm sm:text-base truncate sm:whitespace-normal" data-testid={`text-activity-description-${index}`}>{activity.description}</p>
+                        <p className="text-xs sm:text-sm text-gray-400" data-testid={`text-activity-time-${index}`}>
                           {new Date(activity.createdAt).toLocaleString('ar-IQ')}
                         </p>
                       </div>
                     </div>
-                    <span className={`text-sm ${getActivityStatusColor(activity.type)}`}>
+                    <span className={`text-xs sm:text-sm ${getActivityStatusColor(activity.type)} self-end sm:self-auto`}>
                       {getActivityStatus(activity.type)}
                     </span>
                   </div>
@@ -277,17 +277,17 @@ export default function Dashboard() {
 function ModuleCard({ module, index, hideNumbers }: { module: any; index: number; hideNumbers: boolean }) {
   const content = (
     <GlassCard
-      className={`p-8 ${module.disabled ? 'opacity-60' : 'hover:scale-105 cursor-pointer'} transition-all duration-500 hover:shadow-2xl animate-float group`}
+      className={`p-4 sm:p-8 ${module.disabled ? 'opacity-60' : 'hover:scale-105 cursor-pointer'} transition-all duration-500 hover:shadow-2xl animate-float group`}
       glow={!module.disabled}
       data-testid={`card-module-${index}`}
     >
-      <div className="flex flex-col items-center text-center space-y-6">
-        <div className={`w-20 h-20 ${module.disabled ? 'bg-gray-600' : `gradient-${module.gradient}`} rounded-full flex items-center justify-center ${!module.disabled ? 'group-hover:animate-glow' : ''}`}>
-          <module.icon className="w-8 h-8 text-white" />
+      <div className="flex flex-col items-center text-center space-y-3 sm:space-y-6">
+        <div className={`w-16 h-16 sm:w-20 sm:h-20 ${module.disabled ? 'bg-gray-600' : `gradient-${module.gradient}`} rounded-full flex items-center justify-center ${!module.disabled ? 'group-hover:animate-glow' : ''}`}>
+          <module.icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold mb-2" data-testid={`text-module-title-${index}`}>{module.title}</h3>
-          <p className="text-gray-300 text-sm leading-relaxed" data-testid={`text-module-description-${index}`}>
+          <h3 className="text-lg sm:text-2xl font-bold mb-1 sm:mb-2" data-testid={`text-module-title-${index}`}>{module.title}</h3>
+          <p className="text-gray-300 text-xs sm:text-sm leading-relaxed" data-testid={`text-module-description-${index}`}>
             {module.description}
           </p>
         </div>
