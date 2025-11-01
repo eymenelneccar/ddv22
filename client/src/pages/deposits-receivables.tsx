@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "wouter";
-import { ArrowRight, Plus, Wallet, Receipt, Upload, Edit2, Trash2, CalendarDays } from "lucide-react";
+import { ArrowRight, Plus, Wallet, Receipt, Upload, Edit2, Trash2, CalendarDays, DollarSign } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
@@ -26,19 +26,27 @@ export default function DepositsReceivables() {
   const [isAddReceivableOpen, setIsAddReceivableOpen] = useState(false);
   const [isEditDepositOpen, setIsEditDepositOpen] = useState(false);
   const [isEditReceivableOpen, setIsEditReceivableOpen] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [paymentFile, setPaymentFile] = useState<File | null>(null);
   const [editingDeposit, setEditingDeposit] = useState<any>(null);
   const [editingReceivable, setEditingReceivable] = useState<any>(null);
+  const [payingReceivable, setPayingReceivable] = useState<any>(null);
+  const [paymentAmount, setPaymentAmount] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const [isFullPayment, setIsFullPayment] = useState(true);
 
   const depositForm = useForm({
     resolver: zodResolver(insertDepositSchema),
     defaultValues: {
       customerId: "",
       amount: "",
+      totalAmount: "",
       description: "",
       status: "active",
+      isFullPayment: true,
     },
   });
 
@@ -240,6 +248,55 @@ export default function DepositsReceivables() {
     },
   });
 
+  const payReceivableMutation = useMutation({
+    mutationFn: async ({ id, amount, file }: { id: string; amount: string; file: File | null }) => {
+      const formData = new FormData();
+      formData.append('amount', amount);
+      if (file) {
+        formData.append('receipt', file);
+      }
+
+      return await fetch(`/api/receivables/${id}/pay`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      }).then(async res => {
+        if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+        return res.json();
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/receivables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      setIsPaymentDialogOpen(false);
+      setPayingReceivable(null);
+      setPaymentAmount("");
+      setPaymentFile(null);
+      toast({
+        title: "تم بنجاح",
+        description: "تم تسجيل الدفعة بنجاح",
+      });
+    },
+    onError: (error: Error) => {
+      let errorMessage = "فشل في تسجيل الدفعة";
+      try {
+        const errorText = error.message.split(': ')[1];
+        if (errorText) {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorMessage;
+        }
+      } catch (e) {
+        console.error("Error parsing error message:", error.message);
+      }
+      toast({
+        title: "خطأ",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
+
   const getCustomerName = (customerId: string) => {
     const customer = customers?.find((c: any) => c.id === customerId);
     return customer?.name || "غير معروف";
@@ -345,12 +402,48 @@ export default function DepositsReceivables() {
                         />
                         <FormField
                           control={depositForm.control}
+                          name="isFullPayment"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center gap-2 space-y-0">
+                              <FormControl>
+                                <input
+                                  type="checkbox"
+                                  checked={field.value}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.checked);
+                                    setIsFullPayment(e.target.checked);
+                                  }}
+                                  data-testid="checkbox-full-payment"
+                                  className="w-4 h-4"
+                                />
+                              </FormControl>
+                              <FormLabel className="!mt-0 cursor-pointer">المبلغ كامل</FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                        {!isFullPayment && (
+                          <FormField
+                            control={depositForm.control}
+                            name="totalAmount"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>المبلغ الكامل (د.ع)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" step="0.01" placeholder="0.00" {...field} data-testid="input-total-amount" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                        <FormField
+                          control={depositForm.control}
                           name="amount"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>المبلغ (د.ع)</FormLabel>
+                              <FormLabel>{isFullPayment ? 'المبلغ (د.ع)' : 'المبلغ المدفوع (د.ع)'}</FormLabel>
                               <FormControl>
-                                <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                                <Input type="number" step="0.01" placeholder="0.00" {...field} data-testid="input-deposit-amount" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -363,7 +456,7 @@ export default function DepositsReceivables() {
                             <FormItem>
                               <FormLabel>الوصف</FormLabel>
                               <FormControl>
-                                <Input placeholder="وصف الرعبون..." {...field} />
+                                <Input placeholder="وصف الرعبون..." {...field} data-testid="input-deposit-description" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -604,7 +697,23 @@ export default function DepositsReceivables() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="icon" variant="ghost" onClick={() => deleteReceivableMutation.mutate(receivable.id)}>
+                        {receivable.status !== 'paid' && receivable.status !== 'cancelled' && (
+                          <Button 
+                            size="sm" 
+                            variant="default" 
+                            onClick={() => {
+                              setPayingReceivable(receivable);
+                              setPaymentAmount("");
+                              setIsPaymentDialogOpen(true);
+                            }}
+                            data-testid={`button-pay-${receivable.id}`}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <DollarSign className="w-4 h-4 mr-1" />
+                            تسديد
+                          </Button>
+                        )}
+                        <Button size="icon" variant="ghost" onClick={() => deleteReceivableMutation.mutate(receivable.id)} data-testid={`button-delete-${receivable.id}`}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -620,6 +729,75 @@ export default function DepositsReceivables() {
             </GlassCard>
           </TabsContent>
         </Tabs>
+
+        {/* Payment Dialog */}
+        <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+          <DialogContent className="bg-gray-800/95 border-gray-700">
+            <DialogHeader>
+              <DialogTitle>تسديد مستحق</DialogTitle>
+            </DialogHeader>
+            {payingReceivable && (
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-900/50 rounded-lg">
+                  <p className="text-sm text-gray-400">العميل: <span className="text-white font-semibold">{getCustomerName(payingReceivable.customerId)}</span></p>
+                  <p className="text-sm text-gray-400">المبلغ الكلي: <span className="text-white font-semibold">{Number(payingReceivable.amount).toLocaleString()} د.ع</span></p>
+                  <p className="text-sm text-gray-400">المدفوع حالياً: <span className="text-green-400 font-semibold">{Number(payingReceivable.paidAmount).toLocaleString()} د.ع</span></p>
+                  <p className="text-sm text-gray-400">المتبقي: <span className="text-yellow-400 font-semibold">{(Number(payingReceivable.amount) - Number(payingReceivable.paidAmount)).toLocaleString()} د.ع</span></p>
+                </div>
+                <div>
+                  <Label>المبلغ المدفوع (د.ع)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    data-testid="input-payment-amount"
+                  />
+                </div>
+                <div>
+                  <Label>إيصال (اختياري)</Label>
+                  <FileUpload onFileSelect={setPaymentFile} />
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => {
+                      if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
+                        toast({
+                          title: "خطأ",
+                          description: "الرجاء إدخال مبلغ صحيح",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      payReceivableMutation.mutate({
+                        id: payingReceivable.id,
+                        amount: paymentAmount,
+                        file: paymentFile
+                      });
+                    }}
+                    disabled={payReceivableMutation.isPending}
+                    className="flex-1"
+                    data-testid="button-confirm-payment"
+                  >
+                    {payReceivableMutation.isPending ? "جاري التسديد..." : "تسديد"}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsPaymentDialogOpen(false);
+                      setPaymentAmount("");
+                      setPaymentFile(null);
+                    }}
+                  >
+                    إلغاء
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
